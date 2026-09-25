@@ -2,6 +2,7 @@ import sys
 import requests
 import crawl
 import asyncio
+import json_report
 from urllib.parse import urlsplit
 from acrawl import crawl_site_async
 
@@ -19,11 +20,8 @@ async def main():
     max_concurrency: int = int(sys.argv[2])
     max_pages: int = int(sys.argv[3])
     
-    page_data = {}
     page_data = await crawl_site_async(initial_url, max_concurrency, max_pages)
-    print(f"{len(page_data)} page scanned on {initial_url}:")
-    for key in page_data:
-        print(key)
+    json_report.write_json_report(page_data)
 
 """
 def get_html(url: str):

@@ -36,7 +36,6 @@ class AsyncCrawler:
         async with self.lock:
             if normalized_url in self.visited:
                 return False
-            print(f"Crawling {normalized_url}")
             self.visited.add(normalized_url)
             return True
         
@@ -72,12 +71,6 @@ class AsyncCrawler:
             
             current_url_links: List = crawl.get_urls_from_html(current_url_html, current_url)
             
-        tasks = [
-            asyncio.create_task(self.crawl_page(link))
-            for link in current_url_links
-        ]
-        await asyncio.gather(*tasks)
-        
         tasks = []
         for link in current_url_links:
             task = asyncio.create_task(self.crawl_page(link))
