@@ -33,20 +33,19 @@ class AsyncCrawler:
             self.visited.add(normalized_url)
             return True
 
-    async def get_html(self, url: str) -> str | None:
-        try:
-            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                if response.status >= 400:
-                    print(f"http error {response.status}: {url}")
-                    return None
-                content_type = response.headers.get("Content-Type", "")
-                if "text/html" not in content_type:
-                    print(f"skipping non-html ({content_type}): {url}")
-                    return None
-                return await response.text()
-        except Exception as e:
-            print(f"error fetching {url}: {type(e).__name__}: {e}")
-            return None
+    async def get_html(self, url: str) -> str:
+        # [#3] aiohttp, not requests. requests blocks the whole event loop
+        #      while it waits, so nothing else can run -- that defeats async.
+        # [#3] `async with self.session.get(url)` opens and closes ONE request.
+        #      Your `async with self.session:` closed the entire session
+        #      after the first page.
+        async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            if response.status >= 400:  # [#3] aiohttp: .status (requests: .status_code)
+                raise Exception(f"http error {response.status}")
+            content_type = response.headers.get("Content-Type", "")
+            if "text/html" not in content_type:
+                raise Exception(f"not html ({content_type})")
+            return await response.text()  # [#3] aiohttp: text() is async, so await it
 
     async def crawl_page(self, current_url: str):
         # 1. stay on the same site

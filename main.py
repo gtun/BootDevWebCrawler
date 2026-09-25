@@ -2,27 +2,30 @@ import sys
 import requests
 import crawl
 import asyncio
-import acrawl
 from urllib.parse import urlsplit
+from acrawl import crawl_site_async
 
-header_user_agent = {"User-Agent": "BootCrawler/1.0"}
+
 
 async def main():
     if len(sys.argv) < 2:
         print("no website provided")
         sys.exit(1)
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 4:
         print("too many arguments provided")
         sys.exit(1)
 
     initial_url: str = sys.argv[1]
+    max_concurrency: int = int(sys.argv[2])
+    max_pages: int = int(sys.argv[3])
     
     page_data = {}
-    page_data = await crawl_site_async(initial_url)
+    page_data = await crawl_site_async(initial_url, max_concurrency, max_pages)
     print(f"{len(page_data)} page scanned on {initial_url}:")
     for key in page_data:
         print(key)
 
+"""
 def get_html(url: str):
     try:
         response = requests.get(url, headers={
@@ -58,6 +61,8 @@ def crawl_page(base_url, current_url=None, page_data=None):
 async def crawl_site_async(initial_url):
     async with acrawl.AsyncCrawler():
         return await crawl()
+
+"""
 
 if __name__ == "__main__":
     asyncio.run(main())
